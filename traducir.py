@@ -4,11 +4,14 @@
 Uso:
     python traducir.py ATGGCCATTGTAATGGGCCGC
     python traducir.py -f secuencia.fasta
+    python traducir.py -e ATGGCC...      # agrega estructura secundaria (H/E/T/C)
     echo ATGGCC... | python traducir.py
 """
 import argparse
 import sys
 from itertools import product
+
+from estructura import predecir
 
 BASES = "TCAG"
 AMINOACIDOS = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"
@@ -70,6 +73,8 @@ def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("secuencia", nargs="?", help="secuencia de ADN/ARN (o usa -f / stdin)")
     p.add_argument("-f", "--fasta", help="archivo FASTA de entrada")
+    p.add_argument("-e", "--estructura", action="store_true",
+                   help="predecir estructura secundaria (Chou-Fasman): H=hélice, E=lámina, T=giro, C=coil")
     args = p.parse_args()
 
     if args.fasta:
@@ -86,6 +91,8 @@ def main():
         try:
             for marco, prot in seis_marcos(seq).items():
                 print(f"Marco {marco}: {prot}")
+                if args.estructura:
+                    print(f"{'':{len(marco) + 8}}{predecir(prot)}")
         except ValueError as e:
             sys.exit(f"Error: {e}")
         print()
